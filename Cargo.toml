@@ -1,0 +1,6 @@
+[package]
+name = "rapid-note"
+version = "0.1.0"
+authors = ["Tomochika Hara <rust@thara.jp>"]
+
+[dependencies]
