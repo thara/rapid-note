@@ -11,6 +11,8 @@ mod delete_notes;
 
 use errors::*;
 
+pub use edit_note::UserNoteSelection;
+
 pub struct RapidNote {
     notes: note::NoteSet,
 }

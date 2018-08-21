@@ -1,10 +1,13 @@
 use errors::*;
 use note::NoteSet;
 
+use std::iter::FromIterator;
+use std::ops::Deref;
+use std::convert::AsRef;
 use ::{RapidNote, Platform};
 
 pub trait UserNoteSelection {
-    fn select_note(&self, note_ids: &Vec<String>) -> String;
+    fn select_note(&self, note_ids: &Vec<&str>) -> String;
 }
 
 pub struct EditNote<'a, P: Platform> {
@@ -35,8 +38,8 @@ impl<'a, P: Platform> SelectAndEditNote<'a, P> {
     }
 
     pub fn call<U: UserNoteSelection>(&'a mut self, user: U) -> Result<()> {
-        let notes = self.notes.get_notes()?.into_iter();
-        let notes = notes.map(|x| x.title).collect::<Vec<_>>();
+        let notes = self.notes.get_notes()?;
+        let notes = notes.iter().map(|x| x.title.as_ref()).collect::<Vec<_>>();
         let selected = user.select_note(&notes);
         self.platform.open_note(&*selected)
     }
@@ -59,7 +62,7 @@ mod tests {
 
     struct UserNoteSelectionImpl {}
     impl UserNoteSelection for UserNoteSelectionImpl {
-        fn select_note(&self, _note_ids: &Vec<String>) -> String {
+        fn select_note(&self, _note_ids: &Vec<&str>) -> String {
             "".to_string()
         }
     }
