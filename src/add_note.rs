@@ -39,10 +39,15 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let notes = note_set();
+        let mut notes = note_set();
+        let _ = notes.add_note(Note::new("WIP1".to_string(), "".to_string()));
+        let _ = notes.add_note(Note::new("WIP2".to_string(), "".to_string()));
 
         let mut interactor = RapidNote{notes: notes};
-        let mut input = NewNote{title: "", body: ""};
+        let mut input = NewNote{title: "WIP3", body: ""};
         let _ = interactor.add_note(&mut input).call();
+
+        let notes = interactor.list_notes().call();
+        assert_eq!(notes.unwrap().len(), 3);
     }
 }

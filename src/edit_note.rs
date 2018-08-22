@@ -58,12 +58,13 @@ impl RapidNote {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ::note::*;
     use ::tests::*;
 
     struct UserNoteSelectionImpl {}
     impl UserNoteSelection for UserNoteSelectionImpl {
         fn select_note(&self, _note_ids: &Vec<&str>) -> String {
-            "".to_string()
+            _note_ids[0].to_string()
         }
     }
 
@@ -76,14 +77,19 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let notes = note_set();
+        let mut notes = note_set();
+        let _ = notes.add_note(Note::new("WIP1".to_string(), "".to_string()));
+        let _ = notes.add_note(Note::new("WIP2".to_string(), "".to_string()));
+
         let platform = PlatformImpl{};
 
         let mut interactor = RapidNote{notes: notes};
-        let _ = interactor.edit_note("test", platform).call();
+        let ret = interactor.edit_note("WIP1", platform).call();
+        assert_eq!(ret.is_ok(), true);
 
         let platform = PlatformImpl{};
         let user = UserNoteSelectionImpl{};
-        let _ = interactor.select_and_edit_note(platform).call(user);
+        let ret = interactor.select_and_edit_note(platform).call(user);
+        assert_eq!(ret.is_ok(), true);
     }
 }

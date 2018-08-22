@@ -42,12 +42,13 @@ impl RapidNote {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ::note::*;
     use ::tests::*;
 
     struct UserInteractionImpl {}
     impl UserInteraction for UserInteractionImpl {
         fn confirm_delete(&self) -> bool {
-            false
+            true
         }
         fn show_note_titles(&self, _paths: &Vec<String>) -> Result<()> {
             Ok(())
@@ -56,11 +57,17 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let notes = note_set();
+        let mut notes = note_set();
+        let _ = notes.add_note(Note::new("WIP-XXX".to_string(), "".to_string()));
+        let _ = notes.add_note(Note::new("WIP-YYY".to_string(), "".to_string()));
+        let _ = notes.add_note(Note::new("REVIEW".to_string(), "".to_string()));
 
         let mut interactor = RapidNote{notes: notes};
 
         let user = UserInteractionImpl{};
-        let _ = interactor.delete_notes("WIP*").call(user);
+        let _ = interactor.delete_notes("WIP").call(user);
+
+        let notes = interactor.list_notes().call();
+        assert_eq!(notes.unwrap().len(), 1);
     }
 }

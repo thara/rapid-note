@@ -28,7 +28,7 @@ impl NoteSet {
         NoteSet{imp}
     }
 
-    pub fn add_note(&self, new_note: Note) -> Result<()> {
+    pub fn add_note(&mut self, new_note: Note) -> Result<()> {
         self.imp.save_content(new_note.title, new_note.body)
     }
 
@@ -40,14 +40,14 @@ impl NoteSet {
         self.imp.match_items(pattern)
     }
 
-    pub fn delete_notes(&self, notes: Vec<NoteSummary>) -> Result<()> {
+    pub fn delete_notes(&mut self, notes: Vec<NoteSummary>) -> Result<()> {
         self.imp.delete_items(notes)
     }
 }
 
 pub trait NoteStore {
-    fn save_content(&self, title:String, content:String) -> Result<()>;
+    fn save_content(&mut self, title:String, content:String) -> Result<()>;
     fn get_items(&self) -> Result<Vec<NoteSummary>>;
     fn match_items(&self, pattern: &str) -> Result<Vec<NoteSummary>>;
-    fn delete_items(&self, notes: Vec<NoteSummary>) -> Result<()>;
+    fn delete_items(&mut self, notes: Vec<NoteSummary>) -> Result<()>;
 }
