@@ -4,8 +4,8 @@ use note::NoteSet;
 use ::RapidNote;
 
 pub struct NoteSummaryView {
-    path: String,
-    title: String,
+    pub path: String,
+    pub title: String,
 }
 
 pub struct ListNotes<'a> {

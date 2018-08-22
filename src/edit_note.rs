@@ -1,8 +1,6 @@
 use errors::*;
 use note::NoteSet;
 
-use std::iter::FromIterator;
-use std::ops::Deref;
 use std::convert::AsRef;
 use ::{RapidNote, Platform};
 
