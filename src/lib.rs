@@ -2,7 +2,7 @@
 extern crate error_chain;
 
 mod note;
-mod errors;
+pub mod errors;
 
 mod add_note;
 mod list_notes;
