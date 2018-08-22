@@ -1,5 +1,5 @@
 use errors::*;
-use note::NoteSet;
+use note::NoteRepository;
 
 use ::RapidNote;
 
@@ -9,11 +9,11 @@ pub struct NoteSummaryView {
 }
 
 pub struct ListNotes<'a> {
-    notes: &'a mut NoteSet,
+    notes: &'a mut NoteRepository,
 }
 
 impl<'a> ListNotes<'a> {
-    pub fn new(notes: &'a mut NoteSet) -> Self {
+    pub fn new(notes: &'a mut NoteRepository) -> Self {
         ListNotes{notes: notes}
     }
 
@@ -39,7 +39,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let mut notes = note_set();
+        let mut notes = note_repos();
         let _ = notes.add_note(Note::new("WIP".to_string(), "".to_string()));
         let _ = notes.add_note(Note::new("REVIEW".to_string(), "".to_string()));
 

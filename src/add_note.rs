@@ -1,5 +1,5 @@
 use errors::*;
-use note::{Note, NoteSet};
+use note::{Note, NoteRepository};
 
 use ::RapidNote;
 
@@ -10,12 +10,12 @@ pub struct NewNote<'a> {
 }
 
 pub struct AddNote<'a, 'b> {
-    notes: &'a mut NoteSet,
+    notes: &'a mut NoteRepository,
     input: &'b NewNote<'b>,
 }
 
 impl<'a, 'b> AddNote<'a, 'b> {
-    pub fn new(notes: &'a mut NoteSet, input: &'b mut NewNote) -> Self {
+    pub fn new(notes: &'a mut NoteRepository, input: &'b mut NewNote) -> Self {
         AddNote{notes: notes, input: input}
     }
 
@@ -39,7 +39,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let mut notes = note_set();
+        let mut notes = note_repos();
         let _ = notes.add_note(Note::new("WIP1".to_string(), "".to_string()));
         let _ = notes.add_note(Note::new("WIP2".to_string(), "".to_string()));
 

@@ -19,13 +19,13 @@ pub struct NoteSummary {
     pub title: String,
 }
 
-pub struct NoteSet {
+pub struct NoteRepository {
     imp: Box<NoteStore>
 }
 
-impl NoteSet {
-    pub fn new(imp: Box<NoteStore>) -> NoteSet {
-        NoteSet{imp}
+impl NoteRepository {
+    pub fn new(imp: Box<NoteStore>) -> NoteRepository {
+        NoteRepository{imp}
     }
 
     pub fn add_note(&mut self, new_note: Note) -> Result<()> {

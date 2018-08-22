@@ -1,5 +1,5 @@
 use errors::*;
-use note::NoteSet;
+use note::NoteRepository;
 use ::RapidNote;
 
 pub trait UserInteraction {
@@ -8,12 +8,12 @@ pub trait UserInteraction {
 }
 
 pub struct DeleteNotes<'a, 'b> {
-    notes: &'a mut NoteSet,
+    notes: &'a mut NoteRepository,
     pattern: &'b str,
 }
 
 impl<'a, 'b> DeleteNotes<'a, 'b> {
-    pub fn new(notes: &'a mut NoteSet, pattern: &'b str) -> Self {
+    pub fn new(notes: &'a mut NoteRepository, pattern: &'b str) -> Self {
         DeleteNotes{notes: notes, pattern: pattern}
     }
 
@@ -57,7 +57,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let mut notes = note_set();
+        let mut notes = note_repos();
         let _ = notes.add_note(Note::new("WIP-XXX".to_string(), "".to_string()));
         let _ = notes.add_note(Note::new("WIP-YYY".to_string(), "".to_string()));
         let _ = notes.add_note(Note::new("REVIEW".to_string(), "".to_string()));

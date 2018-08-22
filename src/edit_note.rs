@@ -1,5 +1,5 @@
 use errors::*;
-use note::NoteSet;
+use note::NoteRepository;
 
 use std::convert::AsRef;
 use ::{RapidNote, Platform};
@@ -25,13 +25,13 @@ impl<'a, P: Platform> EditNote<'a, P> {
 }
 
 pub struct SelectAndEditNote<'a, P: Platform> {
-    notes: &'a mut NoteSet,
+    notes: &'a mut NoteRepository,
     platform: P,
 }
 
 impl<'a, P: Platform> SelectAndEditNote<'a, P> {
 
-    pub fn new(notes: &'a mut NoteSet, platform: P) -> Self {
+    pub fn new(notes: &'a mut NoteRepository, platform: P) -> Self {
         SelectAndEditNote{notes: notes, platform: platform}
     }
 
@@ -75,7 +75,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let mut notes = note_set();
+        let mut notes = note_repos();
         let _ = notes.add_note(Note::new("WIP1".to_string(), "".to_string()));
         let _ = notes.add_note(Note::new("WIP2".to_string(), "".to_string()));
 

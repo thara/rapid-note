@@ -14,7 +14,7 @@ use errors::*;
 pub use edit_note::UserNoteSelection;
 
 pub struct RapidNote {
-    notes: note::NoteSet,
+    notes: note::NoteRepository,
 }
 
 pub trait Platform {
@@ -61,13 +61,13 @@ pub mod tests {
         }
     }
 
-    pub fn note_set() -> NoteSet {
-        NoteSet::new(Box::new(NoteStoreImpl::new()))
+    pub fn note_repos() -> NoteRepository {
+        NoteRepository::new(Box::new(NoteStoreImpl::new()))
     }
 
     #[test]
     fn it_works() {
-        let mut notes = note_set();
+        let mut notes = note_repos();
         let _ = notes.add_note(Note::new("AAA".to_string(), "".to_string()));
         let _ = notes.add_note(Note::new("AAB".to_string(), "".to_string()));
         let _ = notes.add_note(Note::new("ABB".to_string(), "".to_string()));
