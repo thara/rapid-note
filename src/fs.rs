@@ -1,8 +1,9 @@
 use chrono::prelude::*;
 
 use std::path::Path;
-use std::fs::File;
-use std::io::Write;
+use std::fs::{self, File, DirEntry};
+use std::io::{BufReader, Write};
+use std::io::prelude::*;
 
 use regex::Regex;
 use shellexpand;
@@ -27,7 +28,16 @@ impl<'a> NoteStore for FileNoteStore<'a> {
         Ok(NoteSummary{path: path, title: title.to_string()})
     }
     fn get_items(&self) -> Result<Vec<NoteSummary>> {
-        Ok(Vec::new())
+        let mut v = Vec::new();
+        for entry in fs::read_dir(&self.config.note_dir)? {
+            let entry = entry?;
+            let path = entry.path();
+            if !path.is_dir() {
+                let title = first_line(&path.as_path().to_str().unwrap())?;
+                v.push(NoteSummary{path: path.to_str().unwrap().to_string(), title: title});
+            }
+        }
+        Ok(v)
     }
     fn match_items(&self, pattern: &str) -> Result<Vec<NoteSummary>> {
         Ok(Vec::new())
@@ -43,6 +53,19 @@ fn escape(s: &str) -> String {
 
     let s = escape_chars_1.replace_all(s, "-");
     escape_chars_2.replace_all(&s, "-").into_owned()
+}
+
+fn first_line(path: &str) -> Result<String> {
+    let f = File::open(path)?;
+    let mut r = BufReader::new(f);
+
+    let mut s = String::new();
+    let num_bytes = r.read_line(&mut s)?;
+    if s.starts_with("Title :") {
+        Ok(s[6..].to_string())
+    } else {
+        Ok("".to_string())
+    }
 }
 
 #[cfg(test)]
