@@ -56,7 +56,6 @@ impl RapidNote {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ::note::*;
     use ::tests::*;
 
     struct UserNoteSelectionImpl {}
@@ -66,18 +65,11 @@ mod tests {
         }
     }
 
-    struct PlatformImpl {}
-    impl Platform for PlatformImpl {
-        fn open_note(&self, _path: &str) -> Result<()> {
-            Ok(())
-        }
-    }
-
     #[test]
     fn it_works() {
         let mut notes = note_repos();
-        let _ = notes.add_note(Note::new("WIP1".to_string(), "".to_string()));
-        let _ = notes.add_note(Note::new("WIP2".to_string(), "".to_string()));
+        let _ = notes.add_note("WIP1", "");
+        let _ = notes.add_note("WIP2", "");
 
         let platform = PlatformImpl{};
 

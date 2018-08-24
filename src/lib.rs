@@ -1,5 +1,8 @@
 #[macro_use]
 extern crate error_chain;
+extern crate chrono;
+extern crate regex;
+extern crate shellexpand;
 
 mod note;
 pub mod errors;
@@ -8,10 +11,15 @@ mod add_note;
 mod list_notes;
 mod edit_note;
 mod delete_notes;
+mod config;
+
+pub mod fs;
 
 use errors::*;
 
+pub use note::NoteStore;
 pub use edit_note::UserNoteSelection;
+pub use config::Config;
 
 pub struct RapidNote {
     notes: note::NoteRepository,
@@ -23,8 +31,15 @@ pub trait Platform {
 
 #[cfg(test)]
 pub mod tests {
-    use errors::*;
+    use super::*;
     use note::*;
+
+    pub struct PlatformImpl {}
+    impl Platform for PlatformImpl {
+        fn open_note(&self, _path: &str) -> Result<()> {
+            Ok(())
+        }
+    }
 
     struct NoteStoreImpl {
         data: Vec<(String, String)>
@@ -37,9 +52,9 @@ pub mod tests {
     }
 
     impl NoteStore for NoteStoreImpl {
-        fn save_content(&mut self, _title: String, _content: String) -> Result<()> {
-            self.data.push((_title, _content));
-            Ok(())
+        fn save_item(&mut self, title: &str, content: &str) -> Result<NoteSummary> {
+            self.data.push((title.to_string(), content.to_string()));
+            Ok(NoteSummary{path: title.to_string(), title: title.to_string()})
         }
         fn get_items(&self) -> Result<Vec<NoteSummary>> {
             let d = self.data.iter().cloned();
@@ -68,11 +83,11 @@ pub mod tests {
     #[test]
     fn it_works() {
         let mut notes = note_repos();
-        let _ = notes.add_note(Note::new("AAA".to_string(), "".to_string()));
-        let _ = notes.add_note(Note::new("AAB".to_string(), "".to_string()));
-        let _ = notes.add_note(Note::new("ABB".to_string(), "".to_string()));
-        let _ = notes.add_note(Note::new("BBB".to_string(), "".to_string()));
-        let _ = notes.add_note(Note::new("BBA".to_string(), "".to_string()));
+        let _ = notes.add_note("AAA", "");
+        let _ = notes.add_note("AAB", "");
+        let _ = notes.add_note("ABB", "");
+        let _ = notes.add_note("BBB", "");
+        let _ = notes.add_note("BBA", "");
 
         let result = notes.match_notes("AA").unwrap();
         assert_eq!(result.len(), 2);

@@ -42,7 +42,6 @@ impl RapidNote {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ::note::*;
     use ::tests::*;
 
     struct UserInteractionImpl {}
@@ -58,9 +57,9 @@ mod tests {
     #[test]
     fn it_works() {
         let mut notes = note_repos();
-        let _ = notes.add_note(Note::new("WIP-XXX".to_string(), "".to_string()));
-        let _ = notes.add_note(Note::new("WIP-YYY".to_string(), "".to_string()));
-        let _ = notes.add_note(Note::new("REVIEW".to_string(), "".to_string()));
+        let _ = notes.add_note("WIP-XXX", "");
+        let _ = notes.add_note("WIP-YYY", "");
+        let _ = notes.add_note("REVIEW", "");
 
         let mut interactor = RapidNote{notes: notes};
 
