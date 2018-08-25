@@ -24,7 +24,7 @@ use errors::*;
 
 pub use note::{NoteRepository, NoteStore};
 pub use add_note::AddNote;
-pub use edit_note::{EditNote, UserNoteSelection};
+pub use edit_note::{EditNote, SelectAndEditNote, UserNoteSelection};
 pub use list_notes::{ListNotes, NoteSummaryView};
 pub use delete_notes::{DeleteNotes, UserInteraction};
 pub use search_notes::{SearchNotes, FullTextSearcher};
