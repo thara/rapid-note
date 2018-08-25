@@ -3,10 +3,6 @@ use note::{NoteRepository};
 
 use ::{RapidNote, Platform};
 
-trait UserInput {
-    fn input_title(&self) -> String;
-}
-
 pub struct AddNote<'a, 'b> {
     notes: &'a mut NoteRepository,
     title: &'b str,
