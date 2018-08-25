@@ -35,7 +35,8 @@ impl<'a> NoteStore for FileNoteStore<'a> {
         for entry in fs::read_dir(&self.config.note_dir)? {
             let entry = entry?;
             let path = entry.path();
-            if !path.is_dir() {
+            let filename = path.as_path().to_str().unwrap();
+            if !path.is_dir() && filename.ends_with(".md") {
                 let title = first_line(&path.as_path().to_str().unwrap())?;
                 v.push(NoteSummary{path: path.to_str().unwrap().to_string(), title: title});
             }
@@ -51,18 +52,18 @@ impl<'a> NoteStore for FileNoteStore<'a> {
             let entry = entry?;
             let path = entry.path();
             let filename = path.as_path().to_str().unwrap();
-            if filename.ends_with(".md") {
-                let path = dir.with_file_name(filename).as_path().to_str().unwrap().to_string();
-                v.push(path)
+            if !path.is_dir() && filename.ends_with(".md") {
+                let title = first_line(&path.as_path().to_str().unwrap())?;
+                v.push(NoteSummary{path: path.to_str().unwrap().to_string(), title: title});
             }
         }
-        let cmd = format!("{} {} {}", &self.config.grep_cmd, pattern, v.join(" "));
-        let _error = Command::new("sh")
-            .current_dir("./")
-            .arg("-c")
-            .arg(cmd)
-            .exec();
-        Ok(Vec::new())
+        // let cmd = format!("{} {} {}", &self.config.grep_cmd, pattern, v.join(" "));
+        // let _error = Command::new("sh")
+        //     .current_dir("./")
+        //     .arg("-c")
+        //     .arg(cmd)
+        //     .exec();
+        Ok(v)
     }
     fn delete_items(&mut self, notes: Vec<NoteSummary>) -> Result<()> {
         Ok(())
