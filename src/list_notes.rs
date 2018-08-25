@@ -17,7 +17,7 @@ impl<'a> ListNotes<'a> {
         ListNotes{notes: notes}
     }
 
-    pub fn call(&'a mut self) -> Result<Vec<NoteSummaryView>> {
+    pub fn call(&mut self) -> Result<Vec<NoteSummaryView>> {
         let notes = self.notes.get_notes()?;
         let notes = notes.into_iter().map(|x| NoteSummaryView{path: x.path, title: x.title});
         Ok(notes.collect::<Vec<_>>())
@@ -25,7 +25,7 @@ impl<'a> ListNotes<'a> {
 }
 
 impl RapidNote {
-    pub fn list_notes<'a>(&'a mut self) -> ListNotes {
+    pub fn list_notes(&mut self) -> ListNotes {
         ListNotes::new(&mut self.notes)
     }
 }

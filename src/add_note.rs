@@ -13,7 +13,7 @@ impl<'a, 'b> AddNote<'a, 'b> {
         AddNote{notes: notes, title: title}
     }
 
-    pub fn call<E: Editor>(&'b mut self, editor: E) -> Result<()> {
+    pub fn call<E: Editor>(&mut self, editor: E) -> Result<()> {
         let body = format!("# {}\n\n", self.title);
         let summary = self.notes.add_note(self.title, &body)?;
         editor.open_note(&summary.path)
@@ -21,7 +21,7 @@ impl<'a, 'b> AddNote<'a, 'b> {
 }
 
 impl RapidNote {
-    pub fn add_note<'a>(&'a mut self, title: &'a str) -> AddNote {
+    pub fn add_note<'a, 'b>(&'a mut self, title: &'b str) -> AddNote<'a, 'b> {
         AddNote::new(&mut self.notes, title)
     }
 }

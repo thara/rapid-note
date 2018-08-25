@@ -15,17 +15,24 @@ use errors::*;
 use note::{NoteStore, NoteSummary};
 use config::Config;
 
-pub struct FileNoteStore<'a> {
-    pub config: &'a Config
+pub struct FileNoteStore {
+    pub config: Config
 }
 
-impl<'a> NoteStore for FileNoteStore<'a> {
+impl<'a> FileNoteStore {
+    pub fn new(cfg: Config) -> Self {
+        FileNoteStore{config: cfg}
+    }
+}
+
+impl NoteStore for FileNoteStore {
+
     fn save_item(&mut self, title: &str, content: &str) -> Result<NoteSummary> {
         let date = Local::now();
         let filename = format!("{}-{}.md", date.format("%Y-%m-%d"), escape(title));
         let pathname = shellexpand::env(&self.config.note_dir).unwrap().into_owned();
         let dir = Path::new(&pathname);
-        let path = dir.with_file_name(filename).as_path().to_str().unwrap().to_string();
+        let path = dir.join(filename).as_path().to_str().unwrap().to_string();
         let mut file = File::create(&path)?;
         file.write_all(content.as_bytes())?;
         Ok(NoteSummary{path: path, title: title.to_string()})

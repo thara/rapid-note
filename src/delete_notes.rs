@@ -42,7 +42,7 @@ impl<'a, 'b> DeleteNotes<'a, 'b> {
 }
 
 impl RapidNote {
-    pub fn delete_notes<'a>(&'a mut self, pattern: &'a str) -> DeleteNotes {
+    pub fn delete_notes<'a, 'b>(&'a mut self, pattern: &'b str) -> DeleteNotes<'a, 'b> {
         DeleteNotes::new(&mut self.notes, pattern)
     }
 }

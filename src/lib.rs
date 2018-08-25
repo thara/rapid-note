@@ -34,6 +34,12 @@ pub struct RapidNote {
     notes: note::NoteRepository,
 }
 
+impl<'a> RapidNote {
+    pub fn new(repos: NoteRepository) -> Self {
+        RapidNote{notes: repos}
+    }
+}
+
 pub trait Editor {
     fn open_note(&self, path: &str) -> Result<()>;
 }

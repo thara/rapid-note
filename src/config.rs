@@ -21,7 +21,7 @@ pub struct Config {
 }
 
 impl Config {
-    fn load() -> Result<Config> {
+    pub fn load() -> Result<Config> {
         let home = env::home_dir().unwrap();
         let home_path = home.to_str().unwrap();
 
