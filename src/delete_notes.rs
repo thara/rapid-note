@@ -9,10 +9,6 @@ pub trait UserInteraction {
     fn show_note_titles(&self, paths: &Vec<String>) -> Result<()>;
 }
 
-pub trait FileDeleter {
-    fn delete_notes(&self, paths: &Vec<&str>) -> Result<()>;
-}
-
 pub struct DeleteNotes<'a, 'b> {
     notes: &'a mut NoteRepository,
     pattern: &'b str,
@@ -23,7 +19,7 @@ impl<'a, 'b> DeleteNotes<'a, 'b> {
         DeleteNotes{notes: notes, pattern: pattern}
     }
 
-    pub fn call<U: UserInteraction, D: FileDeleter>(&'b mut self, user: U, deleter: D) -> Result<()> {
+    pub fn call<U: UserInteraction>(&'b mut self, user: U) -> Result<()> {
         let notes = self.notes.match_notes(self.pattern)?;
         if notes.is_empty() {
             Ok(()) // FIXME Err
@@ -31,9 +27,7 @@ impl<'a, 'b> DeleteNotes<'a, 'b> {
             let titles = notes.clone().into_iter().map(|x| x.title).collect::<Vec<_>>();
             user.show_note_titles(&titles)?;
             if user.confirm_delete() {
-                let paths = notes.iter().map(|x| x.path.as_ref()).collect::<Vec<_>>();
-                deleter.delete_notes(&paths)
-                //self.notes.delete_notes(notes)
+                self.notes.delete_notes(notes)
             } else {
                 Ok(()) // FIXME Err
             }
@@ -62,13 +56,6 @@ mod tests {
         }
     }
 
-    struct FileDeleterImpl {}
-    impl FileDeleter for FileDeleterImpl {
-        fn delete_notes(&self, paths: &Vec<&str>) -> Result<()> {
-            Ok(())
-        }
-    }
-
     #[test]
     fn it_works() {
         let mut notes = note_repos();
@@ -79,10 +66,9 @@ mod tests {
         let mut interactor = RapidNote{notes: notes};
 
         let user = UserInteractionImpl{};
-        let deleter = FileDeleterImpl{};
-        let _ = interactor.delete_notes("WIP").call(user, deleter);
+        let _ = interactor.delete_notes("WIP").call(user);
 
         let notes = interactor.list_notes().call();
-        //assert_eq!(notes.unwrap().len(), 1);
+        assert_eq!(notes.unwrap().len(), 1);
     }
 }
