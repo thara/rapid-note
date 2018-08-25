@@ -15,14 +15,19 @@ mod add_note;
 mod list_notes;
 mod edit_note;
 mod delete_notes;
+mod search_notes;
 mod config;
 
 pub mod fs;
 
 use errors::*;
 
-pub use note::NoteStore;
-pub use edit_note::UserNoteSelection;
+pub use note::{NoteRepository, NoteStore};
+pub use add_note::AddNote;
+pub use edit_note::{EditNote, UserNoteSelection};
+pub use list_notes::{ListNotes, NoteSummaryView};
+pub use delete_notes::{DeleteNotes, UserInteraction};
+pub use search_notes::{SearchNotes, FullTextSearcher};
 pub use config::Config;
 
 pub struct RapidNote {

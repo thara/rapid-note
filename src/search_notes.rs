@@ -19,10 +19,10 @@ impl<'a, 'b> SearchNotes<'a, 'b> {
         SearchNotes{notes: notes, pattern: pattern}
     }
 
-    pub fn call<S: FullTextSearcher>(&'b mut self, searcher: FullTextSearcher) -> Result<()> {
+    pub fn call<S: FullTextSearcher>(&'b mut self, searcher: S) -> Result<()> {
         let notes = self.notes.get_notes()?;
         let paths = notes.iter().map(|x| x.path.as_str()).collect::<Vec<_>>();
-        searcher.grep(self.pattern, paths)?
+        searcher.grep(self.pattern, &paths)
     }
 }
 
@@ -39,7 +39,7 @@ mod tests {
 
     struct FullTextSearcherImpl {}
     impl FullTextSearcher for FullTextSearcherImpl {
-        fn grep(&self, pattern : &str, paths: &Vec<&str>) -> Result<()> {
+        fn grep(&self, _pattern : &str, _paths: &Vec<&str>) -> Result<()> {
             Ok(())
         }
     }
