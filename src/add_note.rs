@@ -7,27 +7,26 @@ trait UserInput {
     fn input_title(&self) -> String;
 }
 
-pub struct AddNote<'a, 'b, P: Platform> {
+pub struct AddNote<'a, 'b> {
     notes: &'a mut NoteRepository,
     title: &'b str,
-    platform: P,
 }
 
-impl<'a, 'b, P: Platform> AddNote<'a, 'b, P> {
-    pub fn new(notes: &'a mut NoteRepository, title: &'b str, platform: P) -> Self {
-        AddNote{notes: notes, title: title, platform: platform}
+impl<'a, 'b> AddNote<'a, 'b> {
+    pub fn new(notes: &'a mut NoteRepository, title: &'b str) -> Self {
+        AddNote{notes: notes, title: title}
     }
 
-    pub fn call(&'b mut self) -> Result<()> {
+    pub fn call<P: Platform>(&'b mut self, platform: P) -> Result<()> {
         let body = format!("# {}\n\n", self.title);
         let summary = self.notes.add_note(self.title, &body)?;
-        self.platform.open_note(&summary.path)
+        platform.open_note(&summary.path)
     }
 }
 
 impl RapidNote {
-    pub fn add_note<'a, P: Platform>(&'a mut self, title: &'a str, platform: P) -> AddNote<P> {
-        AddNote::new(&mut self.notes, title, platform)
+    pub fn add_note<'a>(&'a mut self, title: &'a str) -> AddNote {
+        AddNote::new(&mut self.notes, title)
     }
 }
 
@@ -45,7 +44,7 @@ mod tests {
         let platform = PlatformImpl{};
 
         let mut interactor = RapidNote{notes: notes};
-        let _ = interactor.add_note("WIP3", platform).call();
+        let _ = interactor.add_note("WIP3").call(platform);
 
         let notes = interactor.list_notes().call();
         assert_eq!(notes.unwrap().len(), 3);

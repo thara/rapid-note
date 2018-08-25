@@ -8,47 +8,45 @@ pub trait UserNoteSelection {
     fn select_note(&self, note_ids: &Vec<&str>) -> String;
 }
 
-pub struct EditNote<'a, P: Platform> {
+pub struct EditNote<'a> {
     input: &'a str,
-    platform: P,
 }
 
-impl<'a, P: Platform> EditNote<'a, P> {
+impl<'a> EditNote<'a> {
 
-    pub fn new(input: &'a str, platform: P) -> Self {
-        EditNote{input: input, platform: platform}
+    pub fn new(input: &'a str) -> Self {
+        EditNote{input: input}
     }
 
-    pub fn call(&'a mut self) -> Result<()> {
-        self.platform.open_note(self.input)
+    pub fn call<P: Platform>(&'a mut self, platform: P) -> Result<()> {
+        platform.open_note(self.input)
     }
 }
 
-pub struct SelectAndEditNote<'a, P: Platform> {
+pub struct SelectAndEditNote<'a> {
     notes: &'a mut NoteRepository,
-    platform: P,
 }
 
-impl<'a, P: Platform> SelectAndEditNote<'a, P> {
+impl<'a> SelectAndEditNote<'a> {
 
-    pub fn new(notes: &'a mut NoteRepository, platform: P) -> Self {
-        SelectAndEditNote{notes: notes, platform: platform}
+    pub fn new(notes: &'a mut NoteRepository) -> Self {
+        SelectAndEditNote{notes: notes}
     }
 
-    pub fn call<U: UserNoteSelection>(&'a mut self, user: U) -> Result<()> {
+    pub fn call<U: UserNoteSelection, P: Platform>(&'a mut self, platform: P, user: U) -> Result<()> {
         let notes = self.notes.get_notes()?;
         let notes = notes.iter().map(|x| x.title.as_ref()).collect::<Vec<_>>();
         let selected = user.select_note(&notes);
-        self.platform.open_note(&*selected)
+        platform.open_note(&*selected)
     }
 }
 
 impl RapidNote {
-    pub fn edit_note<'a, P: Platform>(&'a mut self, input: &'a str, platform: P) -> EditNote<P> {
-        EditNote::new(input, platform)
+    pub fn edit_note<'a>(&'a mut self, input: &'a str) -> EditNote {
+        EditNote::new(input)
     }
-    pub fn select_and_edit_note<'a, P: Platform>(&'a mut self, platform: P) -> SelectAndEditNote<P> {
-        SelectAndEditNote::new(&mut self.notes, platform)
+    pub fn select_and_edit_note<'a>(&'a mut self) -> SelectAndEditNote {
+        SelectAndEditNote::new(&mut self.notes)
     }
 }
 
@@ -74,12 +72,12 @@ mod tests {
         let platform = PlatformImpl{};
 
         let mut interactor = RapidNote{notes: notes};
-        let ret = interactor.edit_note("WIP1", platform).call();
+        let ret = interactor.edit_note("WIP1").call(platform);
         assert_eq!(ret.is_ok(), true);
 
         let platform = PlatformImpl{};
         let user = UserNoteSelectionImpl{};
-        let ret = interactor.select_and_edit_note(platform).call(user);
+        let ret = interactor.select_and_edit_note().call(platform, user);
         assert_eq!(ret.is_ok(), true);
     }
 }
