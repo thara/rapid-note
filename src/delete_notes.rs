@@ -6,7 +6,7 @@ use ::RapidNote;
 
 pub trait UserInteraction {
     fn confirm_delete(&self) -> bool;
-    fn show_note_titles(&self, paths: &Vec<String>) -> Result<()>;
+    fn show_note_titles(&self, paths: &Vec<&str>) -> Result<()>;
 }
 
 pub struct DeleteNotes<'a, 'b> {
@@ -20,12 +20,18 @@ impl<'a, 'b> DeleteNotes<'a, 'b> {
     }
 
     pub fn call<U: UserInteraction>(&'b mut self, user: U) -> Result<()> {
-        let notes = self.notes.match_notes(self.pattern)?;
+        let notes = self.notes.get_notes()?;
         if notes.is_empty() {
             Ok(()) // FIXME Err
         } else {
-            let titles = notes.clone().into_iter().map(|x| x.title).collect::<Vec<_>>();
-            user.show_note_titles(&titles)?;
+            let notes = notes.into_iter().filter(|x| x.path.contains(self.pattern)).collect::<Vec<_>>();
+            {
+                let titles = notes.iter().map(|x| x.title.as_ref()).collect::<Vec<_>>();
+                if titles.len() == 0 {
+                    return Ok(())
+                }
+                user.show_note_titles(&titles)?;
+            }
             if user.confirm_delete() {
                 self.notes.delete_notes(notes)
             } else {
@@ -51,7 +57,7 @@ mod tests {
         fn confirm_delete(&self) -> bool {
             true
         }
-        fn show_note_titles(&self, _paths: &Vec<String>) -> Result<()> {
+        fn show_note_titles(&self, _paths: &Vec<&str>) -> Result<()> {
             Ok(())
         }
     }
@@ -59,9 +65,9 @@ mod tests {
     #[test]
     fn it_works() {
         let mut notes = note_repos();
-        let _ = notes.add_note("WIP-XXX", "");
-        let _ = notes.add_note("WIP-YYY", "");
-        let _ = notes.add_note("REVIEW", "");
+        let _ = notes.add_note("WIP-XXX", "WIP-XXX");
+        let _ = notes.add_note("WIP-YYY", "WIP-YYY");
+        let _ = notes.add_note("REVIEW", "REVIEW");
 
         let mut interactor = RapidNote{notes: notes};
 

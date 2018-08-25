@@ -23,10 +23,6 @@ impl NoteRepository {
         self.imp.get_items()
     }
 
-    pub fn match_notes(&self, pattern: &str) -> Result<Vec<NoteSummary>> {
-        self.imp.match_items(pattern)
-    }
-
     pub fn delete_notes(&mut self, notes: Vec<NoteSummary>) -> Result<()> {
         self.imp.delete_items(notes)
     }
@@ -35,6 +31,5 @@ impl NoteRepository {
 pub trait NoteStore {
     fn save_item(&mut self, title: &str, content: &str) -> Result<NoteSummary>;
     fn get_items(&self) -> Result<Vec<NoteSummary>>;
-    fn match_items(&self, pattern: &str) -> Result<Vec<NoteSummary>>;
     fn delete_items(&mut self, notes: Vec<NoteSummary>) -> Result<()>;
 }

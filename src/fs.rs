@@ -30,6 +30,7 @@ impl<'a> NoteStore for FileNoteStore<'a> {
         file.write_all(content.as_bytes())?;
         Ok(NoteSummary{path: path, title: title.to_string()})
     }
+
     fn get_items(&self) -> Result<Vec<NoteSummary>> {
         let pathname = shellexpand::env(&self.config.note_dir).unwrap().into_owned();
         let dir = Path::new(&pathname);
@@ -47,29 +48,7 @@ impl<'a> NoteStore for FileNoteStore<'a> {
         }
         Ok(v)
     }
-    fn match_items(&self, pattern: &str) -> Result<Vec<NoteSummary>> {
-        let pathname = shellexpand::env(&self.config.note_dir).unwrap().into_owned();
-        let dir = Path::new(&pathname);
 
-        let mut v = Vec::new();
-        for entry in fs::read_dir(&self.config.note_dir)? {
-            let entry = entry?;
-            let path = entry.path();
-            let filename = path.as_path().to_str().unwrap();
-            if !path.is_dir() && filename.ends_with(".md") {
-                let path = dir.with_file_name(filename).as_path().to_str().unwrap().to_string();
-                let title = first_line(&path)?;
-                v.push(NoteSummary{path: path, title: title});
-            }
-        }
-        // let cmd = format!("{} {} {}", &self.config.grep_cmd, pattern, v.join(" "));
-        // let _error = Command::new("sh")
-        //     .current_dir("./")
-        //     .arg("-c")
-        //     .arg(cmd)
-        //     .exec();
-        Ok(v)
-    }
     fn delete_items(&mut self, notes: Vec<NoteSummary>) -> Result<()> {
         for entry in notes {
             fs::remove_file(entry.path)?;
