@@ -1,5 +1,8 @@
 use chrono::prelude::*;
 
+use std::process::Command;
+use std::os::unix::process::CommandExt;
+
 use std::path::Path;
 use std::fs::{self, File, DirEntry};
 use std::io::{BufReader, Write};
@@ -40,6 +43,25 @@ impl<'a> NoteStore for FileNoteStore<'a> {
         Ok(v)
     }
     fn match_items(&self, pattern: &str) -> Result<Vec<NoteSummary>> {
+        let pathname = shellexpand::env(&self.config.note_dir).unwrap().into_owned();
+        let dir = Path::new(&pathname);
+
+        let mut v = Vec::new();
+        for entry in fs::read_dir(&self.config.note_dir)? {
+            let entry = entry?;
+            let path = entry.path();
+            let filename = path.as_path().to_str().unwrap();
+            if filename.ends_with(".md") {
+                let path = dir.with_file_name(filename).as_path().to_str().unwrap().to_string();
+                v.push(path)
+            }
+        }
+        let cmd = format!("{} {} {}", &self.config.grep_cmd, pattern, v.join(" "));
+        let _error = Command::new("sh")
+            .current_dir("./")
+            .arg("-c")
+            .arg(cmd)
+            .exec();
         Ok(Vec::new())
     }
     fn delete_items(&mut self, notes: Vec<NoteSummary>) -> Result<()> {
