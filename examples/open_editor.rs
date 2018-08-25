@@ -5,12 +5,12 @@ use std::str;
 
 use std::os::unix::process::CommandExt;
 
-use rapid_note::Platform;
+use rapid_note::Editor;
 use rapid_note::errors::*;
 
-struct PlatformImpl{}
+struct EditorImpl{}
 
-impl rapid_note::Platform for PlatformImpl {
+impl rapid_note::Editor for EditorImpl {
     fn open_note(&self, path: &str) -> Result<()> {
         let cmd = format!("vim {}", path);
         let _error = Command::new("sh")
@@ -23,6 +23,6 @@ impl rapid_note::Platform for PlatformImpl {
 }
 
 fn main() {
-    let imp = PlatformImpl{};
+    let imp = EditorImpl{};
     let _ = imp.open_note("sample.text");
 }

@@ -25,7 +25,7 @@ pub struct RapidNote {
     notes: note::NoteRepository,
 }
 
-pub trait Platform {
+pub trait Editor {
     fn open_note(&self, path: &str) -> Result<()>;
 }
 
@@ -34,8 +34,8 @@ pub mod tests {
     use super::*;
     use note::*;
 
-    pub struct PlatformImpl {}
-    impl Platform for PlatformImpl {
+    pub struct EditorImpl {}
+    impl Editor for EditorImpl {
         fn open_note(&self, _path: &str) -> Result<()> {
             Ok(())
         }

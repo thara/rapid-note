@@ -2,7 +2,7 @@ use errors::*;
 use note::NoteRepository;
 
 use std::convert::AsRef;
-use ::{RapidNote, Platform};
+use ::{RapidNote, Editor};
 
 pub trait UserNoteSelection {
     fn select_note(&self, note_ids: &Vec<&str>) -> String;
@@ -18,8 +18,8 @@ impl<'a> EditNote<'a> {
         EditNote{input: input}
     }
 
-    pub fn call<P: Platform>(&'a mut self, platform: P) -> Result<()> {
-        platform.open_note(self.input)
+    pub fn call<E: Editor>(&'a mut self, editor: E) -> Result<()> {
+        editor.open_note(self.input)
     }
 }
 
@@ -33,11 +33,11 @@ impl<'a> SelectAndEditNote<'a> {
         SelectAndEditNote{notes: notes}
     }
 
-    pub fn call<U: UserNoteSelection, P: Platform>(&'a mut self, platform: P, user: U) -> Result<()> {
+    pub fn call< E: Editor, U: UserNoteSelection>(&'a mut self, editor: E, user: U) -> Result<()> {
         let notes = self.notes.get_notes()?;
         let notes = notes.iter().map(|x| x.title.as_ref()).collect::<Vec<_>>();
         let selected = user.select_note(&notes);
-        platform.open_note(&*selected)
+        editor.open_note(&*selected)
     }
 }
 
@@ -69,15 +69,14 @@ mod tests {
         let _ = notes.add_note("WIP1", "");
         let _ = notes.add_note("WIP2", "");
 
-        let platform = PlatformImpl{};
-
+        let editor = EditorImpl{};
         let mut interactor = RapidNote{notes: notes};
-        let ret = interactor.edit_note("WIP1").call(platform);
+        let ret = interactor.edit_note("WIP1").call(editor);
         assert_eq!(ret.is_ok(), true);
 
-        let platform = PlatformImpl{};
+        let editor = EditorImpl{};
         let user = UserNoteSelectionImpl{};
-        let ret = interactor.select_and_edit_note().call(platform, user);
+        let ret = interactor.select_and_edit_note().call(editor, user);
         assert_eq!(ret.is_ok(), true);
     }
 }

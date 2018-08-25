@@ -1,7 +1,7 @@
 use errors::*;
 use note::{NoteRepository};
 
-use ::{RapidNote, Platform};
+use ::{RapidNote, Editor};
 
 pub struct AddNote<'a, 'b> {
     notes: &'a mut NoteRepository,
@@ -13,10 +13,10 @@ impl<'a, 'b> AddNote<'a, 'b> {
         AddNote{notes: notes, title: title}
     }
 
-    pub fn call<P: Platform>(&'b mut self, platform: P) -> Result<()> {
+    pub fn call<E: Editor>(&'b mut self, editor: E) -> Result<()> {
         let body = format!("# {}\n\n", self.title);
         let summary = self.notes.add_note(self.title, &body)?;
-        platform.open_note(&summary.path)
+        editor.open_note(&summary.path)
     }
 }
 
@@ -37,10 +37,10 @@ mod tests {
         let mut notes = note_repos();
         let _ = notes.add_note("WIP1", "");
         let _ = notes.add_note("WIP2", "");
-        let platform = PlatformImpl{};
+        let editor = EditorImpl{};
 
         let mut interactor = RapidNote{notes: notes};
-        let _ = interactor.add_note("WIP3").call(platform);
+        let _ = interactor.add_note("WIP3").call(editor);
 
         let notes = interactor.list_notes().call();
         assert_eq!(notes.unwrap().len(), 3);
