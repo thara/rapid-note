@@ -24,7 +24,6 @@ impl<'a> ListNotes<'a> {
     }
 }
 
-
 impl RapidNote {
     pub fn list_notes<'a>(&'a mut self) -> ListNotes {
         ListNotes::new(&mut self.notes)
