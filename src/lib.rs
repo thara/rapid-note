@@ -3,6 +3,10 @@ extern crate error_chain;
 extern crate chrono;
 extern crate regex;
 extern crate shellexpand;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
+extern crate toml;
 
 mod note;
 pub mod errors;
@@ -61,11 +65,6 @@ pub mod tests {
             let r = d.map(|(a, b)| NoteSummary{path: a, title: b});
             Ok(r.collect())
         }
-        fn match_items(&self, _pattern: &str) -> Result<Vec<NoteSummary>> {
-            let d = self.data.iter().cloned();
-            let r = d.filter(|(a, _)| a.starts_with(_pattern)).map(|(a, b)| NoteSummary{path: a, title: b});
-            Ok(r.collect())
-        }
 
         fn delete_items(&mut self, _notes: Vec<NoteSummary>) -> Result<()> {
             _notes.iter().for_each(move |x| {
@@ -89,11 +88,11 @@ pub mod tests {
         let _ = notes.add_note("BBB", "");
         let _ = notes.add_note("BBA", "");
 
-        let result = notes.match_notes("AA").unwrap();
-        assert_eq!(result.len(), 2);
+        let result = notes.get_notes().unwrap();
+        assert_eq!(result.len(), 5);
 
         let _ = notes.delete_notes(result);
         let result = notes.get_notes().unwrap();
-        assert_eq!(result.len(), 3);
+        assert_eq!(result.len(), 0);
     }
 }
