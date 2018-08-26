@@ -35,7 +35,7 @@ impl<'a> SelectAndEditNote<'a> {
 
     pub fn call< E: Editor, U: UserNoteSelection>(&'a mut self, editor: E, user: U) -> Result<()> {
         let notes = self.notes.get_notes()?;
-        let notes = notes.iter().map(|x| x.title.as_ref()).collect::<Vec<_>>();
+        let notes = notes.iter().map(|x| x.path.as_ref()).collect::<Vec<_>>();
         let selected = user.select_note(&notes);
         editor.open_note(&*selected)
     }
