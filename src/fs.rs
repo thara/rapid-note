@@ -78,8 +78,10 @@ fn first_line(path: &str) -> Result<String> {
 
     let mut s = String::new();
     let num_bytes = r.read_line(&mut s)?;
-    if s.starts_with("Title :") {
-        Ok(s[6..].to_string())
+    if s.starts_with("# ") {
+        let l = s.trim_right().len();
+        s.truncate(l);
+        Ok(s[2..].to_string())
     } else {
         Ok("".to_string())
     }

@@ -4,6 +4,8 @@ use std::io::{self, Read};
 
 extern crate rapid_note;
 
+extern crate pad;
+use pad::PadStr;
 extern crate clap;
 use clap::{Arg, App, SubCommand};
 
@@ -13,6 +15,7 @@ extern crate error_chain;
 use rapid_note::*;
 use rapid_note::errors::*;
 use rapid_note::fs::FileNoteStore;
+use std::path::Path;
 
 struct EditorImpl;
 
@@ -29,6 +32,10 @@ impl Editor for EditorImpl {
 }
 
 fn run() -> Result<()> {
+    let cfg = Config::load()?;
+    let note_store = FileNoteStore::new(cfg);
+    let repos = NoteRepository::new(Box::new(note_store));
+    let mut rapid_note = RapidNote::new(repos);
 
     let editor = EditorImpl{};
 
@@ -37,14 +44,10 @@ fn run() -> Result<()> {
                                       .arg(Arg::with_name("TITLE")
                                            .required(false)
                                            .index(1)))
+                          .subcommand(SubCommand::with_name("list"))
                           .get_matches();
-    if let Some(matches) = matches.subcommand_matches("add") {
-        let cfg = Config::load()?;
-        let note_store = FileNoteStore::new(cfg);
-        let repos = NoteRepository::new(Box::new(note_store));
-        //let note_store = FileNoteStore{config: &cfg};
-        let mut rapid_note = RapidNote::new(repos);
 
+    if let Some(matches) = matches.subcommand_matches("add") {
         let title = match matches.value_of("TITLE") {
             Some(title) => { title.to_string() },
             None => {
@@ -54,6 +57,15 @@ fn run() -> Result<()> {
             }
         };
         let _ = rapid_note.add_note(&title).call(editor);
+    } else if let Some(matches) = matches.subcommand_matches("list") {
+        let notes = rapid_note.list_notes().call()?;
+        for n in notes {
+            let p = Path::new(&n.path);
+            let file_stem = p.file_stem().unwrap();
+            let mut filename = file_stem.to_str().unwrap().pad_to_width(30);
+            filename.truncate(30);
+            println!("{}: {}", filename, n.title);
+        }
     }
 
     Ok(())
