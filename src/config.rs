@@ -12,7 +12,7 @@ use toml;
 
 use errors::*;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
     pub note_dir: String,
     pub editor: String,
@@ -52,7 +52,7 @@ impl Config {
                 note_dir: note_dir,
                 editor: editor,
                 select_cmd: "peco".to_string(),
-                grep_cmd: "grep -nH {} {}".to_string(),
+                grep_cmd: "grep -nH {PATTERN} {LIST}".to_string(),
             };
             let toml = toml::to_string(&cfg).unwrap();
 

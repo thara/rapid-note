@@ -1,6 +1,7 @@
 use std::process::Command;
 use std::os::unix::process::CommandExt;
 use std::io::{self, Read};
+use std::collections::HashMap;
 
 extern crate rapid_note;
 
@@ -11,6 +12,8 @@ use clap::{Arg, App, SubCommand};
 
 #[macro_use]
 extern crate error_chain;
+extern crate strfmt;
+use strfmt::strfmt;
 
 use rapid_note::*;
 use rapid_note::errors::*;
@@ -31,9 +34,30 @@ impl Editor for EditorImpl {
     }
 }
 
+struct FullTextSearcherImpl<'a> {
+    grep_cmd : &'a str
+}
+
+impl<'a> FullTextSearcher for FullTextSearcherImpl<'a> {
+    fn grep(&self, pattern : &str, paths: &Vec<&str>) -> Result<()> {
+        let list = paths.join(" ");
+
+        let mut vars = HashMap::new();
+        vars.insert("PATTERN".to_string(), pattern);
+        vars.insert("LIST".to_string(), &list);
+        let cmd = strfmt(self.grep_cmd, &vars).unwrap();
+        let _error = Command::new("sh")
+            .current_dir("./")
+            .arg("-c")
+            .arg(cmd)
+            .exec();
+        Ok(())
+    }
+}
+
 fn run() -> Result<()> {
     let cfg = Config::load()?;
-    let note_store = FileNoteStore::new(cfg);
+    let note_store = FileNoteStore::new(cfg.clone());
     let repos = NoteRepository::new(Box::new(note_store));
     let mut rapid_note = RapidNote::new(repos);
 
@@ -45,6 +69,10 @@ fn run() -> Result<()> {
                                            .required(false)
                                            .index(1)))
                           .subcommand(SubCommand::with_name("list"))
+                          .subcommand(SubCommand::with_name("grep")
+                                      .arg(Arg::with_name("PATTERN")
+                                           .required(true)
+                                           .index(1)))
                           .get_matches();
 
     if let Some(matches) = matches.subcommand_matches("add") {
@@ -66,6 +94,10 @@ fn run() -> Result<()> {
             filename.truncate(30);
             println!("{}: {}", filename, n.title);
         }
+    } else if let Some(matches) = matches.subcommand_matches("grep") {
+        let searcher = FullTextSearcherImpl{grep_cmd: &cfg.grep_cmd};
+        let pattern = matches.value_of("PATTERN").unwrap();
+        let _ = rapid_note.search_notes(pattern).call(searcher)?;
     }
 
     Ok(())
