@@ -88,6 +88,30 @@ impl<'a> UserNoteSelection for UserNoteSelectionImpl<'a> {
     }
 }
 
+struct UserInteractionImpl{}
+
+impl UserInteraction for UserInteractionImpl {
+    fn show_note_titles(&self, paths: &Vec<&str>) -> Result<()> {
+        if paths.len() == 0 {
+            return bail!("Nothing!");
+        }
+        for p in paths {
+            println!("{}", p);
+        }
+        Ok(())
+    }
+    fn confirm_delete(&self) -> bool {
+        print!("Will delete those entry. Are you sure? (y/N) : ");
+        io::stdout().flush().ok().expect("Could not flush stdout");
+
+        let mut input = String::new();
+        let stdin = io::stdin();
+        stdin.lock().read_line(&mut input).expect("Could not read line");
+        let answer = input.trim_right();
+        answer == "y" || answer == "Y"
+    }
+}
+
 fn run() -> Result<()> {
     let cfg = Config::load()?;
     let note_store = FileNoteStore::new(cfg.clone());
@@ -109,6 +133,10 @@ fn run() -> Result<()> {
                           .subcommand(SubCommand::with_name("edit")
                                       .arg(Arg::with_name("FILE")
                                            .required(false)
+                                           .index(1)))
+                          .subcommand(SubCommand::with_name("delete")
+                                      .arg(Arg::with_name("PATTERN")
+                                           .required(true)
                                            .index(1)))
                           .get_matches();
 
@@ -147,6 +175,10 @@ fn run() -> Result<()> {
                 rapid_note.select_and_edit_note().call(editor, user)?;
             }
         }
+    } else if let Some(matches) = matches.subcommand_matches("delete") {
+        let pattern = matches.value_of("PATTERN").unwrap();
+        let user = UserInteractionImpl{};
+        let _ = rapid_note.delete_notes(pattern).call(user);
     }
 
     Ok(())

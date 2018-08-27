@@ -28,6 +28,7 @@ impl<'a, 'b> DeleteNotes<'a, 'b> {
             {
                 let titles = notes.iter().map(|x| x.title.as_ref()).collect::<Vec<_>>();
                 if titles.len() == 0 {
+                    println!("Nothing : {}", self.pattern);
                     return Ok(())
                 }
                 user.show_note_titles(&titles)?;
