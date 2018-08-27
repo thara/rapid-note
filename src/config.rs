@@ -1,9 +1,9 @@
-use std::env;
 use shellexpand;
-use std::path::Path;
-use std::io::prelude::*;
+use std::env;
 use std::fs;
 use std::fs::File;
+use std::io::prelude::*;
+use std::path::Path;
 
 use toml;
 
@@ -30,9 +30,9 @@ impl Config {
 
         if config_path.exists() {
             let mut input = String::new();
-            File::open(&config_path).and_then(|mut f| {
-                f.read_to_string(&mut input)
-            }).unwrap();
+            File::open(&config_path)
+                .and_then(|mut f| f.read_to_string(&mut input))
+                .unwrap();
             let mut cfg: Config = toml::from_str(&input).unwrap();
             cfg.note_dir = shellexpand::env(&cfg.note_dir).unwrap().into_owned();
             Ok(cfg)
@@ -45,7 +45,7 @@ impl Config {
 
             let note_dir = env::var("RAPID_NOTE_DIR").unwrap_or(note_dir.to_string());
 
-            let cfg = Config{
+            let cfg = Config {
                 note_dir: note_dir,
                 editor: editor,
                 select_cmd: "peco".to_string(),

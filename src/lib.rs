@@ -2,33 +2,33 @@
 extern crate error_chain;
 extern crate chrono;
 extern crate regex;
-extern crate shellexpand;
 extern crate serde;
+extern crate shellexpand;
 #[macro_use]
 extern crate serde_derive;
 extern crate toml;
 
-mod note;
 pub mod errors;
+mod note;
 
 mod add_note;
-mod list_notes;
-mod edit_note;
-mod delete_notes;
-mod search_notes;
 mod config;
+mod delete_notes;
+mod edit_note;
+mod list_notes;
+mod search_notes;
 
 pub mod fs;
 
 use errors::*;
 
-pub use note::{NoteRepository, NoteStore};
 pub use add_note::AddNote;
+pub use config::Config;
+pub use delete_notes::{DeleteNotes, UserInteraction};
 pub use edit_note::{EditNote, SelectAndEditNote, UserNoteSelection};
 pub use list_notes::{ListNotes, NoteSummaryView};
-pub use delete_notes::{DeleteNotes, UserInteraction};
-pub use search_notes::{SearchNotes, FullTextSearcher};
-pub use config::Config;
+pub use note::{NoteRepository, NoteStore};
+pub use search_notes::{FullTextSearcher, SearchNotes};
 
 pub struct RapidNote {
     notes: note::NoteRepository,
@@ -36,7 +36,7 @@ pub struct RapidNote {
 
 impl<'a> RapidNote {
     pub fn new(repos: NoteRepository) -> Self {
-        RapidNote{notes: repos}
+        RapidNote { notes: repos }
     }
 }
 
@@ -57,30 +57,33 @@ pub mod tests {
     }
 
     struct NoteStoreImpl {
-        data: Vec<(String, String)>
+        data: Vec<(String, String)>,
     }
 
     impl NoteStoreImpl {
         fn new() -> NoteStoreImpl {
-            NoteStoreImpl{data: Vec::new()}
+            NoteStoreImpl { data: Vec::new() }
         }
     }
 
     impl NoteStore for NoteStoreImpl {
         fn save_item(&mut self, title: &str, content: &str) -> Result<NoteSummary> {
             self.data.push((title.to_string(), content.to_string()));
-            Ok(NoteSummary{path: title.to_string(), title: title.to_string()})
+            Ok(NoteSummary {
+                path: title.to_string(),
+                title: title.to_string(),
+            })
         }
         fn get_items(&self) -> Result<Vec<NoteSummary>> {
             let d = self.data.iter().cloned();
-            let r = d.map(|(a, b)| NoteSummary{path: a, title: b});
+            let r = d.map(|(a, b)| NoteSummary { path: a, title: b });
             Ok(r.collect())
         }
 
         fn delete_items(&mut self, _notes: Vec<NoteSummary>) -> Result<()> {
             _notes.iter().for_each(move |x| {
                 let key = &x.path;
-                self.data.retain(|(x,_)| x != key);
+                self.data.retain(|(x, _)| x != key);
             });
             Ok(())
         }

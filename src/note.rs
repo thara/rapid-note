@@ -7,12 +7,12 @@ pub struct NoteSummary {
 }
 
 pub struct NoteRepository {
-    imp: Box<NoteStore>
+    imp: Box<NoteStore>,
 }
 
 impl NoteRepository {
     pub fn new(imp: Box<NoteStore>) -> NoteRepository {
-        NoteRepository{imp}
+        NoteRepository { imp }
     }
 
     pub fn add_note(&mut self, title: &str, content: &str) -> Result<NoteSummary> {

@@ -1,7 +1,7 @@
 use errors::*;
-use note::{NoteRepository};
+use note::NoteRepository;
 
-use ::{RapidNote, Editor};
+use {Editor, RapidNote};
 
 pub struct AddNote<'a, 'b> {
     notes: &'a mut NoteRepository,
@@ -10,7 +10,10 @@ pub struct AddNote<'a, 'b> {
 
 impl<'a, 'b> AddNote<'a, 'b> {
     pub fn new(notes: &'a mut NoteRepository, title: &'b str) -> Self {
-        AddNote{notes: notes, title: title}
+        AddNote {
+            notes: notes,
+            title: title,
+        }
     }
 
     pub fn call<E: Editor>(&mut self, editor: E) -> Result<()> {
@@ -26,20 +29,19 @@ impl RapidNote {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ::tests::*;
+    use tests::*;
 
     #[test]
     fn it_works() {
         let mut notes = note_repos();
         let _ = notes.add_note("WIP1", "");
         let _ = notes.add_note("WIP2", "");
-        let editor = EditorImpl{};
+        let editor = EditorImpl {};
 
-        let mut interactor = RapidNote{notes: notes};
+        let mut interactor = RapidNote { notes: notes };
         let _ = interactor.add_note("WIP3").call(editor);
 
         let notes = interactor.list_notes().call();

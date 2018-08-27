@@ -5,10 +5,10 @@ use std::str;
 
 use std::os::unix::process::CommandExt;
 
-use rapid_note::Editor;
 use rapid_note::errors::*;
+use rapid_note::Editor;
 
-struct EditorImpl{}
+struct EditorImpl {}
 
 impl rapid_note::Editor for EditorImpl {
     fn open_note(&self, path: &str) -> Result<()> {
@@ -23,6 +23,6 @@ impl rapid_note::Editor for EditorImpl {
 }
 
 fn main() {
-    let imp = EditorImpl{};
+    let imp = EditorImpl {};
     let _ = imp.open_note("sample.text");
 }

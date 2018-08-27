@@ -1,10 +1,10 @@
 use errors::*;
-use note::{NoteRepository};
+use note::NoteRepository;
 
-use ::RapidNote;
+use RapidNote;
 
 pub trait FullTextSearcher {
-    fn grep(&self, pattern : &str, paths: &Vec<&str>) -> Result<()>;
+    fn grep(&self, pattern: &str, paths: &Vec<&str>) -> Result<()>;
 }
 
 pub struct SearchNotes<'a, 'b> {
@@ -14,7 +14,10 @@ pub struct SearchNotes<'a, 'b> {
 
 impl<'a, 'b> SearchNotes<'a, 'b> {
     pub fn new(notes: &'a mut NoteRepository, pattern: &'b str) -> Self {
-        SearchNotes{notes: notes, pattern: pattern}
+        SearchNotes {
+            notes: notes,
+            pattern: pattern,
+        }
     }
 
     pub fn call<S: FullTextSearcher>(&'b mut self, searcher: S) -> Result<()> {
@@ -33,11 +36,11 @@ impl RapidNote {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ::tests::*;
+    use tests::*;
 
     struct FullTextSearcherImpl {}
     impl FullTextSearcher for FullTextSearcherImpl {
-        fn grep(&self, _pattern : &str, _paths: &Vec<&str>) -> Result<()> {
+        fn grep(&self, _pattern: &str, _paths: &Vec<&str>) -> Result<()> {
             Ok(())
         }
     }
@@ -49,9 +52,9 @@ mod tests {
         let _ = notes.add_note("WIP-YYY", "");
         let _ = notes.add_note("REVIEW", "");
 
-        let mut interactor = RapidNote{notes: notes};
+        let mut interactor = RapidNote { notes: notes };
 
-        let searcher = FullTextSearcherImpl{};
+        let searcher = FullTextSearcherImpl {};
         let _ = interactor.search_notes("WIP*").call(searcher);
     }
 }

@@ -2,7 +2,7 @@ use std::convert::AsRef;
 
 use errors::*;
 use note::NoteRepository;
-use ::RapidNote;
+use RapidNote;
 
 pub trait UserInteraction {
     fn confirm_delete(&self) -> bool;
@@ -16,7 +16,10 @@ pub struct DeleteNotes<'a, 'b> {
 
 impl<'a, 'b> DeleteNotes<'a, 'b> {
     pub fn new(notes: &'a mut NoteRepository, pattern: &'b str) -> Self {
-        DeleteNotes{notes: notes, pattern: pattern}
+        DeleteNotes {
+            notes: notes,
+            pattern: pattern,
+        }
     }
 
     pub fn call<U: UserInteraction>(&'b mut self, user: U) -> Result<()> {
@@ -24,12 +27,15 @@ impl<'a, 'b> DeleteNotes<'a, 'b> {
         if notes.is_empty() {
             Ok(()) // FIXME Err
         } else {
-            let notes = notes.into_iter().filter(|x| x.path.contains(self.pattern)).collect::<Vec<_>>();
+            let notes = notes
+                .into_iter()
+                .filter(|x| x.path.contains(self.pattern))
+                .collect::<Vec<_>>();
             {
                 let titles = notes.iter().map(|x| x.title.as_ref()).collect::<Vec<_>>();
                 if titles.len() == 0 {
                     println!("Nothing : {}", self.pattern);
-                    return Ok(())
+                    return Ok(());
                 }
                 user.show_note_titles(&titles)?;
             }
@@ -51,7 +57,7 @@ impl RapidNote {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ::tests::*;
+    use tests::*;
 
     struct UserInteractionImpl {}
     impl UserInteraction for UserInteractionImpl {
@@ -70,9 +76,9 @@ mod tests {
         let _ = notes.add_note("WIP-YYY", "WIP-YYY");
         let _ = notes.add_note("REVIEW", "REVIEW");
 
-        let mut interactor = RapidNote{notes: notes};
+        let mut interactor = RapidNote { notes: notes };
 
-        let user = UserInteractionImpl{};
+        let user = UserInteractionImpl {};
         let _ = interactor.delete_notes("WIP").call(user);
 
         let notes = interactor.list_notes().call();

@@ -1,7 +1,7 @@
 use errors::*;
 use note::NoteRepository;
 
-use ::RapidNote;
+use RapidNote;
 
 pub struct NoteSummaryView {
     pub path: String,
@@ -14,12 +14,15 @@ pub struct ListNotes<'a> {
 
 impl<'a> ListNotes<'a> {
     pub fn new(notes: &'a mut NoteRepository) -> Self {
-        ListNotes{notes: notes}
+        ListNotes { notes: notes }
     }
 
     pub fn call(&mut self) -> Result<Vec<NoteSummaryView>> {
         let notes = self.notes.get_notes()?;
-        let notes = notes.into_iter().map(|x| NoteSummaryView{path: x.path, title: x.title});
+        let notes = notes.into_iter().map(|x| NoteSummaryView {
+            path: x.path,
+            title: x.title,
+        });
         Ok(notes.collect::<Vec<_>>())
     }
 }
@@ -33,7 +36,7 @@ impl RapidNote {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ::tests::*;
+    use tests::*;
 
     #[test]
     fn it_works() {
@@ -41,7 +44,7 @@ mod tests {
         let _ = notes.add_note("WIP", "");
         let _ = notes.add_note("REVIEW", "");
 
-        let mut interactor = RapidNote{notes: notes};
+        let mut interactor = RapidNote { notes: notes };
         let result = interactor.list_notes().call();
 
         assert_eq!(result.unwrap().len(), 2);

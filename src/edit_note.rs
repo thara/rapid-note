@@ -2,7 +2,7 @@ use errors::*;
 use note::NoteRepository;
 
 use std::convert::AsRef;
-use ::{RapidNote, Editor};
+use {Editor, RapidNote};
 
 pub trait UserNoteSelection {
     fn select_note(&self, note_ids: &Vec<&str>) -> String;
@@ -13,9 +13,8 @@ pub struct EditNote<'a> {
 }
 
 impl<'a> EditNote<'a> {
-
     pub fn new(input: &'a str) -> Self {
-        EditNote{input: input}
+        EditNote { input: input }
     }
 
     pub fn call<E: Editor>(&'a mut self, editor: E) -> Result<()> {
@@ -28,12 +27,11 @@ pub struct SelectAndEditNote<'a> {
 }
 
 impl<'a> SelectAndEditNote<'a> {
-
     pub fn new(notes: &'a mut NoteRepository) -> Self {
-        SelectAndEditNote{notes: notes}
+        SelectAndEditNote { notes: notes }
     }
 
-    pub fn call< E: Editor, U: UserNoteSelection>(&'a mut self, editor: E, user: U) -> Result<()> {
+    pub fn call<E: Editor, U: UserNoteSelection>(&'a mut self, editor: E, user: U) -> Result<()> {
         let notes = self.notes.get_notes()?;
         let notes = notes.iter().map(|x| x.path.as_ref()).collect::<Vec<_>>();
         let selected = user.select_note(&notes);
@@ -50,11 +48,10 @@ impl RapidNote {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ::tests::*;
+    use tests::*;
 
     struct UserNoteSelectionImpl {}
     impl UserNoteSelection for UserNoteSelectionImpl {
@@ -69,13 +66,13 @@ mod tests {
         let _ = notes.add_note("WIP1", "");
         let _ = notes.add_note("WIP2", "");
 
-        let editor = EditorImpl{};
-        let mut interactor = RapidNote{notes: notes};
+        let editor = EditorImpl {};
+        let mut interactor = RapidNote { notes: notes };
         let ret = interactor.edit_note("WIP1").call(editor);
         assert_eq!(ret.is_ok(), true);
 
-        let editor = EditorImpl{};
-        let user = UserNoteSelectionImpl{};
+        let editor = EditorImpl {};
+        let user = UserNoteSelectionImpl {};
         let ret = interactor.select_and_edit_note().call(editor, user);
         assert_eq!(ret.is_ok(), true);
     }
