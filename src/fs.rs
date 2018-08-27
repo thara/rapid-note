@@ -1,10 +1,7 @@
 use chrono::prelude::*;
 
-use std::process::Command;
-use std::os::unix::process::CommandExt;
-
 use std::path::Path;
-use std::fs::{self, File, DirEntry};
+use std::fs::{self, File};
 use std::io::{BufReader, Write};
 use std::io::prelude::*;
 
@@ -77,7 +74,7 @@ fn first_line(path: &str) -> Result<String> {
     let mut r = BufReader::new(f);
 
     let mut s = String::new();
-    let num_bytes = r.read_line(&mut s)?;
+    let _ = r.read_line(&mut s)?;
     if s.starts_with("# ") {
         let l = s.trim_right().len();
         s.truncate(l);

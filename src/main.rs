@@ -93,7 +93,7 @@ struct UserInteractionImpl{}
 impl UserInteraction for UserInteractionImpl {
     fn show_note_titles(&self, paths: &Vec<&str>) -> Result<()> {
         if paths.len() == 0 {
-            return bail!("Nothing!");
+            bail!("Nothing!");
         }
         for p in paths {
             println!("{}", p);
@@ -150,7 +150,7 @@ fn run() -> Result<()> {
             }
         };
         let _ = rapid_note.add_note(&title).call(editor);
-    } else if let Some(matches) = matches.subcommand_matches("list") {
+    } else if let Some(_) = matches.subcommand_matches("list") {
         let notes = rapid_note.list_notes().call()?;
         for n in notes {
             let p = Path::new(&n.path);

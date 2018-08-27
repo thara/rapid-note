@@ -1,13 +1,10 @@
 use std::env;
 use shellexpand;
-use std::path::{Path, PathBuf};
-use std::io;
+use std::path::Path;
 use std::io::prelude::*;
 use std::fs;
 use std::fs::File;
 
-use serde;
-use serde_derive;
 use toml;
 
 use errors::*;

@@ -1,5 +1,3 @@
-use std::convert::AsRef;
-
 use errors::*;
 use note::{NoteRepository};
 
