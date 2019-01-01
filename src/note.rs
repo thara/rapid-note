@@ -6,30 +6,8 @@ pub struct NoteSummary {
     pub title: String,
 }
 
-pub struct NoteRepository {
-    imp: Box<NoteStore>,
-}
-
-impl NoteRepository {
-    pub fn new(imp: Box<NoteStore>) -> NoteRepository {
-        NoteRepository { imp }
-    }
-
-    pub fn add_note(&mut self, title: &str, content: &str) -> Result<NoteSummary> {
-        self.imp.save_item(title, content)
-    }
-
-    pub fn get_notes(&self) -> Result<Vec<NoteSummary>> {
-        self.imp.get_items()
-    }
-
-    pub fn delete_notes(&mut self, notes: Vec<NoteSummary>) -> Result<()> {
-        self.imp.delete_items(notes)
-    }
-}
-
-pub trait NoteStore {
-    fn save_item(&mut self, title: &str, content: &str) -> Result<NoteSummary>;
-    fn get_items(&self) -> Result<Vec<NoteSummary>>;
-    fn delete_items(&mut self, notes: Vec<NoteSummary>) -> Result<()>;
+pub trait NoteRepository {
+    fn add_note(&self, title: &str, content: &str) -> Result<NoteSummary>;
+    fn get_notes(&self) -> Result<Vec<NoteSummary>>;
+    fn delete_notes(&self, notes: Vec<NoteSummary>) -> Result<()>;
 }

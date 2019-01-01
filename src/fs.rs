@@ -10,20 +10,18 @@ use shellexpand;
 
 use config::Config;
 use errors::*;
-use note::{NoteStore, NoteSummary};
+use note::NoteSummary;
 
 pub struct FileNoteStore {
     pub config: Config,
 }
 
-impl<'a> FileNoteStore {
+impl FileNoteStore {
     pub fn new(cfg: Config) -> Self {
         FileNoteStore { config: cfg }
     }
-}
 
-impl NoteStore for FileNoteStore {
-    fn save_item(&mut self, title: &str, content: &str) -> Result<NoteSummary> {
+    pub fn add_note(&self, title: &str, content: &str) -> Result<NoteSummary> {
         let date = Local::now();
         let filename = format!("{}-{}.md", date.format("%Y-%m-%d"), escape(title));
         let pathname = shellexpand::env(&self.config.note_dir)
@@ -39,7 +37,7 @@ impl NoteStore for FileNoteStore {
         })
     }
 
-    fn get_items(&self) -> Result<Vec<NoteSummary>> {
+    pub fn get_notes(&self) -> Result<Vec<NoteSummary>> {
         let pathname = shellexpand::env(&self.config.note_dir)
             .unwrap()
             .into_owned();
@@ -67,7 +65,7 @@ impl NoteStore for FileNoteStore {
         Ok(v)
     }
 
-    fn delete_items(&mut self, notes: Vec<NoteSummary>) -> Result<()> {
+    pub fn delete_notes(&self, notes: Vec<NoteSummary>) -> Result<()> {
         for entry in notes {
             fs::remove_file(entry.path)?;
         }

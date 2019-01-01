@@ -1,9 +1,5 @@
-use std::collections::HashMap;
-use std::io::prelude::*;
 use std::io::{self, Read};
-use std::os::unix::process::CommandExt;
-use std::process::{Command, Stdio};
-use std::str;
+use std::path::Path;
 
 extern crate rapid_note;
 
@@ -14,134 +10,15 @@ use clap::{App, Arg, SubCommand};
 
 #[macro_use]
 extern crate error_chain;
-extern crate strfmt;
-use strfmt::strfmt;
 
+use rapid_note::cli::*;
 use rapid_note::errors::*;
 use rapid_note::fs::FileNoteStore;
 use rapid_note::*;
-use std::path::Path;
-
-struct EditorImpl;
-
-impl Editor for EditorImpl {
-    fn open_note(&self, path: &str) -> Result<()> {
-        let cmd = format!("vim {}", path);
-        let _e = Command::new("sh")
-            .current_dir("./")
-            .arg("-c")
-            .arg(cmd)
-            .exec();
-        Ok(())
-    }
-}
-
-struct FullTextSearcherImpl<'a> {
-    grep_cmd: &'a str,
-}
-
-impl<'a> FullTextSearcher for FullTextSearcherImpl<'a> {
-    fn grep(&self, pattern: &str, paths: &Vec<&str>) -> Result<()> {
-        let list = paths.join(" ");
-
-        let mut vars = HashMap::new();
-        vars.insert("PATTERN".to_string(), pattern);
-        vars.insert("LIST".to_string(), &list);
-        let cmd = strfmt(self.grep_cmd, &vars).unwrap();
-        let _error = Command::new("sh")
-            .current_dir("./")
-            .arg("-c")
-            .arg(cmd)
-            .exec();
-        Ok(())
-    }
-}
-
-struct UserNoteSelectionImpl<'a> {
-    note_dir: &'a str,
-    select_cmd: &'a str,
-}
-
-impl<'a> UserNoteSelection for UserNoteSelectionImpl<'a> {
-    fn select_note(&self, paths: &Vec<&str>) -> String {
-        let mut child = Command::new("sh")
-            .arg("-c")
-            .arg(self.select_cmd)
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .spawn()
-            .expect("failed to execute child");
-
-        let filenames = paths
-            .iter()
-            .map(|x| {
-                Path::new(x)
-                    .file_name()
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
-                    .to_string()
-            })
-            .collect::<Vec<_>>();
-        child
-            .stdin
-            .as_mut()
-            .unwrap()
-            .write_all(filenames.join("\n").as_bytes())
-            .expect("failed to write into stdin");
-        //FIXME
-        let output = child.wait_with_output().expect("failed to wait on child");
-        assert!(output.status.success());
-
-        let s = match str::from_utf8(&output.stdout) {
-            Ok(v) => v,
-            Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
-        };
-        let len = s.trim_right().len();
-        let mut s = s.to_string();
-        s.truncate(len);
-        Path::new(self.note_dir)
-            .join(s)
-            .to_str()
-            .unwrap()
-            .to_string()
-    }
-}
-
-struct UserInteractionImpl {}
-
-impl UserInteraction for UserInteractionImpl {
-    fn show_note_titles(&self, paths: &Vec<&str>) -> Result<()> {
-        if paths.len() == 0 {
-            bail!("Nothing!");
-        }
-        for p in paths {
-            println!("{}", p);
-        }
-        Ok(())
-    }
-    fn confirm_delete(&self) -> bool {
-        print!("Will delete those entry. Are you sure? (y/N) : ");
-        io::stdout().flush().ok().expect("Could not flush stdout");
-
-        let mut input = String::new();
-        let stdin = io::stdin();
-        stdin
-            .lock()
-            .read_line(&mut input)
-            .expect("Could not read line");
-        let answer = input.trim_right();
-        answer == "y" || answer == "Y"
-    }
-}
 
 fn run() -> Result<()> {
     let cfg = Config::load()?;
-    let note_store = FileNoteStore::new(cfg.clone());
-    let repos = NoteRepository::new(Box::new(note_store));
-    let mut rapid_note = RapidNote::new(repos);
-
-    let editor = EditorImpl {};
+    let store = FileNoteStore::new(cfg.clone());
 
     let matches = App::new("Rapid Note")
         .subcommand(
@@ -168,9 +45,16 @@ fn run() -> Result<()> {
                 input
             }
         };
-        let _ = rapid_note.add_note(&title).call(editor);
+        let body = format!("# {}\n\n", title);
+        let summary = store.add_note(&title, &body)?;
+        let _ = open_note(&summary.path);
     } else if let Some(_) = matches.subcommand_matches("list") {
-        let notes = rapid_note.list_notes().call()?;
+        let notes = store.get_notes()?;
+        let notes = notes.into_iter().map(|x| NoteSummaryView {
+            path: x.path,
+            title: x.title,
+        });
+
         for n in notes {
             let p = Path::new(&n.path);
             let file_stem = p.file_stem().unwrap();
@@ -179,11 +63,11 @@ fn run() -> Result<()> {
             println!("{}: {}", filename, n.title);
         }
     } else if let Some(matches) = matches.subcommand_matches("grep") {
-        let searcher = FullTextSearcherImpl {
-            grep_cmd: &cfg.grep_cmd,
-        };
         let pattern = matches.value_of("PATTERN").unwrap();
-        let _ = rapid_note.search_notes(pattern).call(searcher)?;
+
+        let notes = store.get_notes()?;
+        let paths = notes.iter().map(|x| x.path.as_str()).collect::<Vec<_>>();
+        let _ = grep(&cfg.grep_cmd, pattern, &paths)?;
     } else if let Some(matches) = matches.subcommand_matches("edit") {
         match matches.value_of("FILE") {
             Some(file) => {
@@ -193,20 +77,40 @@ fn run() -> Result<()> {
                     .to_str()
                     .unwrap()
                     .to_string();
-                rapid_note.edit_note(&path).call(editor)?;
+                let _ = open_note(&path)?;
             }
             None => {
-                let user = UserNoteSelectionImpl {
-                    note_dir: &cfg.note_dir,
-                    select_cmd: &cfg.select_cmd,
-                };
-                rapid_note.select_and_edit_note().call(editor, user)?;
+                let notes = store.get_notes()?;
+                let notes = notes.iter().map(|x| x.path.as_ref()).collect::<Vec<_>>();
+                let selected = select_note(&cfg.select_cmd, &cfg.note_dir, &notes);
+                open_note(&*selected)?;
             }
         }
     } else if let Some(matches) = matches.subcommand_matches("delete") {
         let pattern = matches.value_of("PATTERN").unwrap();
-        let user = UserInteractionImpl {};
-        let _ = rapid_note.delete_notes(pattern).call(user);
+
+        let notes = store.get_notes()?;
+        if notes.is_empty() {
+            // FIXME Err
+        } else {
+            let notes = notes
+                .into_iter()
+                .filter(|x| x.path.contains(pattern))
+                .collect::<Vec<_>>();
+            {
+                let titles = notes.iter().map(|x| x.title.as_ref()).collect::<Vec<_>>();
+                if titles.len() == 0 {
+                    println!("Nothing : {}", pattern);
+                    return Ok(());
+                }
+                show_note_titles(&titles)?;
+            }
+            if confirm_delete() {
+                store.delete_notes(notes)?;
+            } else {
+                // FIXME Err
+            }
+        }
     }
 
     Ok(())
