@@ -10,16 +10,19 @@ extern crate strfmt;
 extern crate toml;
 
 pub mod errors;
-mod note;
 
 mod config;
 
 pub mod cli;
-pub mod fs;
+pub mod repository;
 
 pub use config::Config;
-pub use fs::FileNoteStore;
-pub use note::NoteSummary;
+
+#[derive(Debug, Clone)]
+pub struct NoteSummary {
+    pub path: String,
+    pub title: String,
+}
 
 pub struct NoteSummaryView {
     pub path: String,

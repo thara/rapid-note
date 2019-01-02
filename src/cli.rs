@@ -1,6 +1,6 @@
 use std::collections::HashMap;
+use std::io;
 use std::io::prelude::*;
-use std::io::{self, Read};
 use std::os::unix::process::CommandExt;
 use std::path::Path;
 use std::process::{Command, Stdio};

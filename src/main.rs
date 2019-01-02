@@ -13,12 +13,11 @@ extern crate error_chain;
 
 use rapid_note::cli::*;
 use rapid_note::errors::*;
-use rapid_note::fs::FileNoteStore;
-use rapid_note::*;
+use rapid_note::repository::NoteRepository;
+use rapid_note::{Config, NoteSummaryView};
 
 fn run() -> Result<()> {
-    let cfg = Config::load()?;
-    let store = FileNoteStore::new(cfg.clone());
+    let repos = Config::load()?;
 
     let matches = App::new("Rapid Note")
         .subcommand(
@@ -46,10 +45,10 @@ fn run() -> Result<()> {
             }
         };
         let body = format!("# {}\n\n", title);
-        let summary = store.add_note(&title, &body)?;
+        let summary = repos.add_note(&title, &body)?;
         let _ = open_note(&summary.path);
     } else if let Some(_) = matches.subcommand_matches("list") {
-        let notes = store.get_notes()?;
+        let notes = repos.get_notes()?;
         let notes = notes.into_iter().map(|x| NoteSummaryView {
             path: x.path,
             title: x.title,
@@ -65,14 +64,14 @@ fn run() -> Result<()> {
     } else if let Some(matches) = matches.subcommand_matches("grep") {
         let pattern = matches.value_of("PATTERN").unwrap();
 
-        let notes = store.get_notes()?;
+        let notes = repos.get_notes()?;
         let paths = notes.iter().map(|x| x.path.as_str()).collect::<Vec<_>>();
-        let _ = grep(&cfg.grep_cmd, pattern, &paths)?;
+        let _ = grep(&repos.grep_cmd, pattern, &paths)?;
     } else if let Some(matches) = matches.subcommand_matches("edit") {
         match matches.value_of("FILE") {
             Some(file) => {
-                //FIXME should not use cfg.note_dir here
-                let path = Path::new(&cfg.note_dir)
+                //FIXME should not use repos.note_dir here
+                let path = Path::new(&repos.note_dir)
                     .join(file)
                     .to_str()
                     .unwrap()
@@ -80,16 +79,16 @@ fn run() -> Result<()> {
                 let _ = open_note(&path)?;
             }
             None => {
-                let notes = store.get_notes()?;
+                let notes = repos.get_notes()?;
                 let notes = notes.iter().map(|x| x.path.as_ref()).collect::<Vec<_>>();
-                let selected = select_note(&cfg.select_cmd, &cfg.note_dir, &notes);
+                let selected = select_note(&repos.select_cmd, &repos.note_dir, &notes);
                 open_note(&*selected)?;
             }
         }
     } else if let Some(matches) = matches.subcommand_matches("delete") {
         let pattern = matches.value_of("PATTERN").unwrap();
 
-        let notes = store.get_notes()?;
+        let notes = repos.get_notes()?;
         if notes.is_empty() {
             // FIXME Err
         } else {
@@ -106,7 +105,7 @@ fn run() -> Result<()> {
                 show_note_titles(&titles)?;
             }
             if confirm_delete() {
-                store.delete_notes(notes)?;
+                repos.delete_notes(notes)?;
             } else {
                 // FIXME Err
             }

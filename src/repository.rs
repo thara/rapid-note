@@ -8,25 +8,21 @@ use std::path::Path;
 use regex::Regex;
 use shellexpand;
 
-use config::Config;
-use errors::*;
-use note::NoteSummary;
+use crate::config::Config;
+use crate::errors::*;
+use crate::NoteSummary;
 
-pub struct FileNoteStore {
-    pub config: Config,
+pub trait NoteRepository {
+    fn add_note(&self, title: &str, content: &str) -> Result<NoteSummary>;
+    fn get_notes(&self) -> Result<Vec<NoteSummary>>;
+    fn delete_notes(&self, notes: Vec<NoteSummary>) -> Result<()>;
 }
 
-impl FileNoteStore {
-    pub fn new(cfg: Config) -> Self {
-        FileNoteStore { config: cfg }
-    }
-
-    pub fn add_note(&self, title: &str, content: &str) -> Result<NoteSummary> {
+impl NoteRepository for Config {
+    fn add_note(&self, title: &str, content: &str) -> Result<NoteSummary> {
         let date = Local::now();
         let filename = format!("{}-{}.md", date.format("%Y-%m-%d"), escape(title));
-        let pathname = shellexpand::env(&self.config.note_dir)
-            .unwrap()
-            .into_owned();
+        let pathname = shellexpand::env(&self.note_dir).unwrap().into_owned();
         let dir = Path::new(&pathname);
         let path = dir.join(filename).as_path().to_str().unwrap().to_string();
         let mut file = File::create(&path)?;
@@ -37,14 +33,12 @@ impl FileNoteStore {
         })
     }
 
-    pub fn get_notes(&self) -> Result<Vec<NoteSummary>> {
-        let pathname = shellexpand::env(&self.config.note_dir)
-            .unwrap()
-            .into_owned();
+    fn get_notes(&self) -> Result<Vec<NoteSummary>> {
+        let pathname = shellexpand::env(&self.note_dir).unwrap().into_owned();
         let dir = Path::new(&pathname);
 
         let mut v = Vec::new();
-        for entry in fs::read_dir(&self.config.note_dir)? {
+        for entry in fs::read_dir(&self.note_dir)? {
             let entry = entry?;
             let path = entry.path();
             let filename = path.as_path().to_str().unwrap();
@@ -65,7 +59,7 @@ impl FileNoteStore {
         Ok(v)
     }
 
-    pub fn delete_notes(&self, notes: Vec<NoteSummary>) -> Result<()> {
+    fn delete_notes(&self, notes: Vec<NoteSummary>) -> Result<()> {
         for entry in notes {
             fs::remove_file(entry.path)?;
         }
